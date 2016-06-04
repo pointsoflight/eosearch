@@ -7,3 +7,5 @@ This project stated as a National Day of Civic Hacking project by [Code for Atla
 ## Specifictions
 
 This is mainly intended to be a fast lookup service for other projects. The API should support lookup by EIN, city, state, or zip, and return JSON of matching rows in the database. 
+
+Bonus points for automating the fetching of CSVs from the IRS website, and auto-loading them into a mySQL instance. 
