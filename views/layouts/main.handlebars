@@ -39,8 +39,8 @@ a {
 	width: 450px;
 }
 
-.form-wrapper #search,
-.form-wrapper #search2  {
+.form-wrapper #searchEIN,
+.form-wrapper #searchName  {
 	border: 1px solid #CCC;
 	-webkit-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #FFF;
 	-moz-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #FFF;
@@ -56,8 +56,8 @@ a {
 	width: 320px;
 }
 
-.form-wrapper #search:focus,
-.form-wrapper #search2:focus {
+.form-wrapper #searchEIN:focus,
+.form-wrapper #searchName:focus {
 	border-color: #aaa;
 	-webkit-box-shadow: 0 1px 1px #bbb inset;
 	-moz-box-shadow: 0 1px 1px #bbb inset;
@@ -65,18 +65,18 @@ a {
 	outline: 0;
 }
 
-.form-wrapper #search:-moz-placeholder,
-.form-wrapper #search:-ms-input-placeholder,
-.form-wrapper #search::-webkit-input-placeholder,
-.form-wrapper #search2:-moz-placeholder,
-.form-wrapper #search2:-ms-input-placeholder,
-.form-wrapper #search2::-webkit-input-placeholder {
+.form-wrapper #searchEIN:-moz-placeholder,
+.form-wrapper #searchEIN:-ms-input-placeholder,
+.form-wrapper #searchEIN::-webkit-input-placeholder,
+.form-wrapper #searchName:-moz-placeholder,
+.form-wrapper #searchName:-ms-input-placeholder,
+.form-wrapper #searchName::-webkit-input-placeholder {
 	color: #999;
 	font-weight: normal;
 }
 
-.form-wrapper #submit,
-.form-wrapper #submit2 {
+.form-wrapper #submitEIN,
+.form-wrapper #submitName {
 	background-color: #0483a0;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#31b2c3), to(#0483a0));
 	background-image: -webkit-linear-gradient(top, #31b2c3, #0483a0);
@@ -102,10 +102,10 @@ a {
 	width: 100px;
 }
 
-.form-wrapper #submit:hover,
-.form-wrapper #submit:focus,
-.form-wrapper #submit2:hover,
-.form-wrapper #submit2:focus {
+.form-wrapper #submitEIN:hover,
+.form-wrapper #submitEIN:focus,
+.form-wrapper #submitName:hover,
+.form-wrapper #submitName:focus {
 	background-color: #31b2c3;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#0483a0), to(#31b2c3));
 	background-image: -webkit-linear-gradient(top, #0483a0, #31b2c3);
@@ -115,16 +115,16 @@ a {
 	background-image: linear-gradient(top, #0483a0, #31b2c3);
 }
 
-.form-wrapper #submit:active,
-.form-wrapper #submit2:active  {
+.form-wrapper #submitEIN:active,
+.form-wrapper #submitNa:meactive  {
 	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	-moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	outline: 0;
 }
 
-.form-wrapper #submit::-moz-focus-inner,
-.form-wrapper #submit2::-moz-focus-inner {
+.form-wrapper #submitEIN::-moz-focus-inner,
+.form-wrapper #submitName::-moz-focus-inner {
 	border: 0;
 }
 #eoRes{
@@ -136,37 +136,42 @@ a {
 </style>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script>
-    $(document).ready(function()
-    {
-    	$('#submit').click(function(){
-            var einInput = $('#search').val();
-            console.log('in submit', einInput);
-    		    // $("#testForm").attr("action", "/result/" + einInput);
-            $.ajax({
-              url: '/api/records/'+einInput,
-              type: 'GET'
-            }).then(function(results){
-              $('#searchResults').val(JSON.stringify(results));
-            });
-            return false;
-    	});
-      $('#submit2').click(function(){
-            var name = $('#search2').val();
-            console.log('in submit', name);
-            // $("#testForm").attr("action", "/result/" + einInput);
-            $.ajax({
-              url: '/api/records?name='+name,
-              type: 'GET'
-            }).then(function(results){
-              $('#searchResults').val(JSON.stringify(results, null, '\t'));
-            });
-            return false;
+    $(document).ready(function(){
+
+      $.fn.extend({
+        onKeyEnter: function(callback){
+          var cb = (typeof callback == 'function') ? callback : new Function(callback);
+          this.keypress(function(e){ if( e.keyCode == 13 ) setTimeout(cb,0,e); });
+        }
       });
 
-      function drawJSON(json){
-        var render = "";
-
+      function searchByName(){
+        var name = $('#searchName').val();
+        printResults('/api/records?name='+name);
       }
+
+      function searchByEIN(){
+        var ein = $('#searchEIN').val();
+        printResults('/api/records/'+ein);
+      }
+
+      function printResults(url){
+        $.ajax({
+          url: url,
+          type: 'GET'
+        }).then(function(results){
+          $('#searchResults').val(JSON.stringify(results, null, '\t'));
+        });
+      }
+
+      //disallow form submission
+      $('form').submit(function(e){ e.preventDefault(); });
+
+    	$('#submitEIN').click(searchByEIN);
+      $('#searchEIN').onKeyEnter(searchByEIN);
+      
+      $('#submitName').click(searchByName);
+      $('#searchName').onKeyEnter(searchByName);
     });
 </script>
 </head>
@@ -177,12 +182,12 @@ a {
 
     <h1> EO Search</h1>
     <form class="form-wrapper" name="myForm" id="testForm">
-        <input type="text" id="search" placeholder="Enter EIN ..." required>
-        <input type="button" id="submit"  value="Search">
+        <input type="text" id="searchEIN" placeholder="Enter EIN ..." required>
+        <input type="button" id="submitEIN"  value="Search">
     </form>
     <form class="form-wrapper" name="myForm2" id="testForm2">
-        <input type="text" id="search2" placeholder="Enter Name ..." required>
-        <input type="button" id="submit2"  value="Search">
+        <input type="text" id="searchName" placeholder="Enter Name ..." required>
+        <input type="button" id="submitName"  value="Search">
     </form>
     <div class="form-wrapper">
             <h3>Results</h3>
