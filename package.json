@@ -4,6 +4,7 @@
   "description": "Points of Light EO Search uses the [IRS' Master EO File](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf) to convert a set of CSV files into a searchable API of Tax Exempt Organizations in the United States. Points of Light needs this to support other charitable organizations in our mission.",
   "main": "index.js",
   "scripts": {
+   "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

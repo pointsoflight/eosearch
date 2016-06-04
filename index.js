@@ -2,38 +2,51 @@ var pg = require('pg');
 var conString = process.env.DATABASE_URL || "postgres://eosearch@localhost/eosearch";
 
 var express = require('express');
+var exphbs  = require('express-handlebars');
 var app = express();
 
 var squel = require('squel');
 
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
+
 var validColumnNames = "EIN,NAME,ICO,STREET,CITY,STATE,ZIP,EO_GROUP,SUBSECTION,AFFILIATION,CLASSIFICATION,RULING,DEDUCTIBILITY,FOUNDATION,ACTIVITY,ORGANIZATION,STATUS,TAX_PERIOD,ASSET_CD,INCOME_CD,FILING_REQ_CD,PF_FILING_REQ_CD,ACCT_PD,ASSET_AMT,INCOME_AMT,REVENUE_AMT,NTEE_CD,SORT_NAME".toLowerCase().split(',');
+
+function findByEin(ein, callback){
+  pg.connect(conString, function(err, client, done) {
+    if(err) {
+      console.error('error fetching client from pool', err);
+      callback(err, null);
+      return;
+    }
+
+    client.query(squel.select().from('irs_eo_records').where('EIN = ?', ein).toString(), function(err, result){
+      done();
+      if(err){
+        callback(err, null);
+        return;
+      }else if(result.rows.length > 0){
+        callback(null, result.rows[0]);
+      }else{
+        callback(null, null);
+      }
+    });
+  });
+}
 
 // FIND: /api/records/:EIN
 app.get('/api/records/:ein', function(req, res){
 
   var ein = req.params.ein;
 
-  pg.connect(conString, function(err, client, done) {
-    if(err) {
-      console.error('error fetching client from pool', err);
+  findByEin(ein, function(err, result){
+    if(err){
       res.status(500).error(err);
-      return;
+    }else if(result){
+      res.json(result);
+    }else{
+      res.status(404).json({status: 'Record not found'})
     }
-
-    client.query(squel.select().from('irs_eo_records').where('EIN = ?', ein).toString(), function(err, result){
-      done(); 
-      if(err){
-        res.status(500).json(err);
-        return;
-      }
-
-      if(result.rows.length > 0){
-        res.json(result.rows[0]);
-      }else{
-        res.status(404).json({status: 'Record not found'});
-      }
-
-    });
   });
 });
 
@@ -115,6 +128,20 @@ app.get('/api/records', function(req, res){
   });
 });
 
+app.get('/', function (req, res) {
+    res.render('home');
+});
+
+app.get('/result/:ein', function(req, res){
+  var ein = req.params.ein;
+
+  findByEin(ein, function(err, result){
+
+    res.json(result);
+
+  });
+
+});
 
 var port = process.env.PORT || 5000;
 app.listen(port, function () {
