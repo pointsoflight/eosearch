@@ -80,6 +80,23 @@ app.get('/api/records/:ein', function(req, res){
   });
 });
 
+app.get('/api/slacklookup', function(req, res){
+
+  var ein = req.query.text;
+  var callback = req.query.response_url;
+  
+  findByEin(ein, function(err, result){
+    if(err){
+      res.status(500).error(err);
+    }else if(result){
+      res.json(result);
+    }else{
+      res.status(404).json({status: 'Record not found'})
+    }
+  });
+});
+
+
 // QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
 app.get('/api/records', function(req, res){
 
@@ -102,6 +119,7 @@ app.get('/api/records', function(req, res){
       }
     }
   }
+  
 
   // ordering. ?order=columnname OR ?order[columnname1]=asc&order[columnname2]=desc
   if(params.order){
