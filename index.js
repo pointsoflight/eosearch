@@ -9,9 +9,7 @@ var db = require('./db');
 
 // FIND: /api/records/:EIN
 app.get('/api/records/:ein', function(req, res){
-
   var ein = req.params.ein;
-
   db.findByEin(ein, function(err, result){
     if(err){
       res.status(500).error(err);
@@ -22,27 +20,6 @@ app.get('/api/records/:ein', function(req, res){
     }
   });
 });
-
-app.get('/api/slacklookup', function(req, res){
-
-  var ein = req.query.text;
-
-  db.findByEin(ein, function(err, result){
-
-    if(err){
-      res.status(500).error(err);
-    }else if(result){
-      res.json({
-        'text': result.name + ' ' + result.street +
-        ' ' + result.city + ' ' + result.state +
-        ' ' + result.zip
-      });
-    }else{
-      res.status(404).json({status: 'Record not found'})
-    }
-  });
-});
-
 
 // QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
 app.get('/api/records', function(req, res){
@@ -58,28 +35,26 @@ app.get('/api/records', function(req, res){
   });
 });
 
-app.get('/result/name/:name', function(req, res){
-  db.query({
-    name: req.params.name,
-    per_page: 1
-  }, function(err, results, paginationInfo){
+app.get('/api/slacklookup', function(req, res){
+  var ein = req.query.text;
+  db.findByEin(ein, function(err, result){
     if(err){
       res.status(500).error(err);
+    }else if(result){
+      res.json({
+        'text': result.name + ' ' + result.street +
+        ' ' + result.city + ' ' + result.state +
+        ' ' + result.zip
+      });
     }else{
-      res.json(results[0]);
+      res.status(404).json({status: 'Record not found'})
     }
   });
 });
 
+
 app.get('/', function (req, res) {
     res.render('home');
-});
-
-app.get('/result/:ein', function(req, res){
-  var ein = req.params.ein;
-  db.findByEin(ein, function(err, result){
-    res.json(result);
-  });
 });
 
 var port = process.env.PORT || 5000;
