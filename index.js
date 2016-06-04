@@ -10,7 +10,37 @@ var squel = require('squel');
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
-var validColumnNames = "EIN,NAME,ICO,STREET,CITY,STATE,ZIP,EO_GROUP,SUBSECTION,AFFILIATION,CLASSIFICATION,RULING,DEDUCTIBILITY,FOUNDATION,ACTIVITY,ORGANIZATION,STATUS,TAX_PERIOD,ASSET_CD,INCOME_CD,FILING_REQ_CD,PF_FILING_REQ_CD,ACCT_PD,ASSET_AMT,INCOME_AMT,REVENUE_AMT,NTEE_CD,SORT_NAME".toLowerCase().split(',');
+var validColumnNames = [
+  'ein',
+  'name',
+  'ico',
+  'street',
+  'city',
+  'state',
+  'zip',
+  'eo_group',
+  'subsection',
+  'affiliation',
+  'classification',
+  'ruling',
+  'deductibility',
+  'foundation',
+  'activity',
+  'organization',
+  'status',
+  'tax_period',
+  'asset_cd',
+  'income_cd',
+  'filing_req_cd',
+  'pf_filing_req_cd',
+  'acct_pd',
+  'asset_amt',
+  'income_amt',
+  'revenue_amt',
+  'ntee_cd',
+  'sort_name'
+];
+var fullSearchColumns = ['name', 'ico', 'street', 'city', 'state', 'zip'];
 
 function findByEin(ein, callback){
   pg.connect(conString, function(err, client, done) {
@@ -59,12 +89,17 @@ app.get('/api/records', function(req, res){
   var query = squel.select().from('irs_eo_records');
 
   for(var i=0; i<queryKeys.length;i++){
-    var key = queryKeys[i];
+    var key = queryKeys[i].toLowerCase();
     var value = params[key];
 
     // validate column names
-    if(validColumnNames.indexOf(key.toLowerCase()) >= 0){
-      query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');
+    if(validColumnNames.indexOf(key) >= 0){
+      if(fullSearchColumns.indexOf(key) >= 0){
+        // do contains comparsion
+        query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');  
+      }else{
+        query = query.where(key+' = ?', value);
+      }
     }
   }
 

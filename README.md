@@ -53,7 +53,7 @@ The API has two endpoints. If you know the EIN of the EO, simply do a `GET` requ
 
 
 If you need to query for other columns, do a `GET` request to `/api/records` and pass in your query as query parameters.
-These are in the format `columnname=value`. Columns `name`, `address`, `street`, and `city` are fuzzy search, so it will
+These are in the format `columnname=value`. Columns `'name', 'ico', 'street', 'city', 'state', 'zip'` are fuzzy search, so it will
 match all EOs where that column contains the given string. The rest of the columns are exact matching.
 
 You can order results by column. If you only need to order by one column ascending, simply use `order=column_name`. To order
@@ -140,3 +140,32 @@ Results are a JSON object with results inside an array in the key `results`. Pag
 ```
 
 ### Columns
+
+    ein
+    name
+    ico
+    street
+    city
+    state
+    zip
+    eo_group
+    subsection
+    affiliation
+    classification
+    ruling
+    deductibility
+    foundation
+    activity
+    organization
+    status
+    tax_period
+    asset_cd
+    income_cd
+    filing_req_cd
+    pf_filing_req_cd
+    acct_pd
+    asset_amt
+    income_amt
+    revenue_amt
+    ntee_cd
+    sort_nam
