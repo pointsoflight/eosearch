@@ -28,10 +28,15 @@ app.get('/api/slacklookup', function(req, res){
   var ein = req.query.text;
   
   db.findByEin(ein, function(err, result){
+    
     if(err){
       res.status(500).error(err);
     }else if(result){
-      res.json(result);
+      res.json({
+        'text': result.name + ' ' + result.street + 
+        ' ' + result.city + ' ' + result.state + 
+        ' ' + result.zip
+      });
     }else{
       res.status(404).json({status: 'Record not found'})
     }
