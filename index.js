@@ -26,15 +26,15 @@ app.get('/api/records/:ein', function(req, res){
 app.get('/api/slacklookup', function(req, res){
 
   var ein = req.query.text;
-  
+
   db.findByEin(ein, function(err, result){
-    
+
     if(err){
       res.status(500).error(err);
     }else if(result){
       res.json({
-        'text': result.name + ' ' + result.street + 
-        ' ' + result.city + ' ' + result.state + 
+        'text': result.name + ' ' + result.street +
+        ' ' + result.city + ' ' + result.state +
         ' ' + result.zip
       });
     }else{
@@ -54,6 +54,19 @@ app.get('/api/records', function(req, res){
         results: results,
         pagination: paginationInfo
       });
+    }
+  });
+});
+
+app.get('/result/name/:name', function(req, res){
+  db.query({
+    name: req.params.name,
+    per_page: 1
+  }, function(err, results, paginationInfo){
+    if(err){
+      res.status(500).error(err);
+    }else{
+      res.json(results[0]);
     }
   });
 });

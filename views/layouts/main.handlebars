@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>IRS EO RECORDS</title>
+    <title>EO Search</title>
     <style>
       body {
   background: #eee;
@@ -39,7 +39,8 @@ a {
 	width: 450px;
 }
 
-.form-wrapper #search {
+.form-wrapper #search,
+.form-wrapper #search2  {
 	border: 1px solid #CCC;
 	-webkit-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #FFF;
 	-moz-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #FFF;
@@ -55,7 +56,8 @@ a {
 	width: 320px;
 }
 
-.form-wrapper #search:focus {
+.form-wrapper #search:focus,
+.form-wrapper #search2:focus {
 	border-color: #aaa;
 	-webkit-box-shadow: 0 1px 1px #bbb inset;
 	-moz-box-shadow: 0 1px 1px #bbb inset;
@@ -65,12 +67,16 @@ a {
 
 .form-wrapper #search:-moz-placeholder,
 .form-wrapper #search:-ms-input-placeholder,
-.form-wrapper #search::-webkit-input-placeholder {
+.form-wrapper #search::-webkit-input-placeholder,
+.form-wrapper #search2:-moz-placeholder,
+.form-wrapper #search2:-ms-input-placeholder,
+.form-wrapper #search2::-webkit-input-placeholder {
 	color: #999;
 	font-weight: normal;
 }
 
-.form-wrapper #submit {
+.form-wrapper #submit,
+.form-wrapper #submit2 {
 	background-color: #0483a0;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#31b2c3), to(#0483a0));
 	background-image: -webkit-linear-gradient(top, #31b2c3, #0483a0);
@@ -97,7 +103,9 @@ a {
 }
 
 .form-wrapper #submit:hover,
-.form-wrapper #submit:focus {
+.form-wrapper #submit:focus,
+.form-wrapper #submit2:hover,
+.form-wrapper #submit2:focus {
 	background-color: #31b2c3;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#0483a0), to(#31b2c3));
 	background-image: -webkit-linear-gradient(top, #0483a0, #31b2c3);
@@ -107,35 +115,75 @@ a {
 	background-image: linear-gradient(top, #0483a0, #31b2c3);
 }
 
-.form-wrapper #submit:active {
+.form-wrapper #submit:active,
+.form-wrapper #submit2:active  {
 	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	-moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 	outline: 0;
 }
 
-.form-wrapper #submit::-moz-focus-inner {
+.form-wrapper #submit::-moz-focus-inner,
+.form-wrapper #submit2::-moz-focus-inner {
 	border: 0;
+}
+#eoRes{
+   font-size: 14px;
+   font-weight: normal;
+   resize: none;
+   overflow-y: scroll;
 }
 </style>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script>
     $(document).ready(function()
     {
-    	$("#testForm").submit(function(){
+    	$('#submit').click(function(){
             var einInput = $('#search').val();
             console.log('in submit', einInput);
-    		$("#testForm").attr("action", "/result/" + einInput);
-            return true;
+    		    // $("#testForm").attr("action", "/result/" + einInput);
+            $.ajax({
+              url: '/api/records/'+einInput,
+              type: 'GET'
+            }).then(function(results){
+              $('#searchResults').val(JSON.stringify(results));
+            });
+            return false;
     	});
+      $('#submit2').click(function(){
+            var name = $('#search2').val();
+            console.log('in submit', name);
+            // $("#testForm").attr("action", "/result/" + einInput);
+            $.ajax({
+              url: '/api/records?name='+name,
+              type: 'GET'
+            }).then(function(results){
+              $('#searchResults').val(JSON.stringify(results, null, '\t'));
+            });
+            return false;
+      });
+
+      function drawJSON(json){
+        var render = "";
+
+      }
     });
 </script>
 </head>
 <body>
-    <h1> IRS EO RECORDS</h1>
-    <form class="form-wrapper" name="myForm" id="testForm" method="GET">
+    <h1> EO Search</h1>
+    <form class="form-wrapper" name="myForm" id="testForm">
         <input type="text" id="search" placeholder="Enter EIN ..." required>
-        <input type="submit" id="submit"  value="Search">
+        <input type="button" id="submit"  value="Search">
     </form>
+    <form class="form-wrapper" name="myForm2" id="testForm2">
+        <input type="text" id="search2" placeholder="Enter Name ..." required>
+        <input type="button" id="submit2"  value="Search">
+    </form>
+    <div class="form-wrapper">
+            <h3>Results</h3>
+            <textarea readonly rows="15" cols="60" id="searchResults" style="resize: none;">
+            </textarea>
+    </div>
 </body>
 </html>
