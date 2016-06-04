@@ -118,18 +118,10 @@ a {
 	border: 0;
 }
 </style>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script>
     $(document).ready(function()
     {
-/*
-        $("#submit").click(function()
-            {
-                var einInput = $('#search').val();
-                $("#testForm").attr("action", "http://localhost:5000/api/records/" + einInput);
-                $("#testForm").submit();
-            });
-*/
     	$("#testForm").submit(function(){
             var einInput = $('#search').val();
             console.log('in submit', einInput);
