@@ -96,7 +96,7 @@ app.get('/api/records', function(req, res){
     if(validColumnNames.indexOf(key) >= 0){
       if(fullSearchColumns.indexOf(key) >= 0){
         // do contains comparsion
-        query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');  
+        query = query.where(key+' LIKE ?', '%'+value.toUpperCase()+'%');  
       }else{
         query = query.where(key+' = ?', value);
       }
