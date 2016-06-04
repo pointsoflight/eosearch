@@ -4,6 +4,9 @@ var conString = process.env.DATABASE_URL || "postgres://eosearch@localhost/eosea
 var express = require('express');
 var app = express();
 
+var squel = require('squel');
+
+var validColumnNames = "EIN,NAME,ICO,STREET,CITY,STATE,ZIP,GROUP,SUBSECTION,AFFILIATION,CLASSIFICATION,RULING,DEDUCTIBILITY,FOUNDATION,ACTIVITY,ORGANIZATION,STATUS,TAX_PERIOD,ASSET_CD,INCOME_CD,FILING_REQ_CD,PF_FILING_REQ_CD,ACCT_PD,ASSET_AMT,INCOME_AMT,REVENUE_AMT,NTEE_CD,SORT_NAME".toLowerCase().split(',');
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
@@ -15,9 +18,8 @@ pg.connect(conString, function(err, client, done) {
 
     var ein = req.params.ein;
 
-    // todo find
 
-    client.query('SELECT * from irs_eo_records WHERE EIN = $1;', [ein], function(err, result){
+    client.query(squel.select().from('irs_eo_records').where('EIN = ?', ein).toString(), function(err, result){
 
       done();
 
@@ -35,25 +37,35 @@ pg.connect(conString, function(err, client, done) {
     });
 
   });
-  // QUERY: /api/records?params....
+  // QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
   app.get('/api/records', function(req, res){
+    done();
 
-    var query = req.query;
+    var params = req.query;
 
-    // client.query('SELECT * from irs_eo_records;', function(err, result) {
-    //   //call `done()` to release the client back to the pool
-    //   done();
+    var queryKeys = Object.keys(params);
+    var query = squel.select().from('irs_eo_records');
 
-    //   if(err) {
-    //     res.status(500).json(err);
-    //     return console.error('error running query', err);
-    //   }
-    //   console.log(result.rows[0].number);
-    //   //output: 1
+    for(var i=0; i<queryKeys.length;i++){
+      var key = queryKeys[i];
+      var value = params[key];
 
-    //   res.json(result);
-    // });
+      // validate column names
+      if(validColumnNames.indexOf(key.toLowerCase()) >= 0){
+        query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');
+      }
+    }
 
+    client.query(query.toString(), function(err, result) {
+      done();
+
+      if(err) {
+        res.status(500).json(err);
+        return console.error('error running query', err);
+      }else{
+        res.json(result.rows);
+      }
+    });
   });
 
 
@@ -61,7 +73,4 @@ pg.connect(conString, function(err, client, done) {
   app.listen(port, function () {
     console.log('Example app listening on port '+port);
   });
-
-
-
 });

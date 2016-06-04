@@ -18,6 +18,7 @@
   "homepage": "https://github.com/pointsoflight/eosearch#readme",
   "dependencies": {
     "express": "^4.13.4",
-    "pg": "^4.5.6"
+    "pg": "^4.5.6",
+    "squel": "^5.2.1"
   }
 }
