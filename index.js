@@ -47,7 +47,7 @@ app.get('/api/slacklookup', function(req, res){
         '\n ' + result.city + ' ' + result.state + 
         ' ' + result.zip + '\n ' +
         'Deductibility: ' + result.deductibility + '\n ' +
-        'Affiliation Code: ' + result.affiliation +  '\n'
+        'Affiliation Code: ' + result.affiliation +  '\n' +
         'Contact: ' + result.ico
       });
     }else{
