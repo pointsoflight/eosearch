@@ -55,20 +55,36 @@ app.get('/api/records', function(req, res){
     }
   }
 
-  // ordering
+  // ordering. ?order=columnname OR ?order[columnname1]=asc&order[columnname2]=desc
   if(params.order){
-    console.log(params.order);
     if(typeof params.order === 'string'){
       query = query.order(params.order);
     }else{
       var keys = Object.keys(params.order);
       for(var i=0; i<keys.length; i++){
         var key = keys[i];
-        var asc = keys[key] !== 'false';
-        query = query.order(key, asc);
+        var order = params.order[key].toLowerCase();
+        if(order === 'asc'){
+          query = query.order(key, true);
+        }else if(order === 'desc'){
+          query = query.order(key, false);
+        }
+        //else ignore
       }
     }
   }
+
+  // pagination
+  const PER_PAGE_LIMIT = 50;
+  params.page = parseInt(params.page || 1, 10);
+  if(params.page < 1){
+    params.page = 1;
+  }
+  params.per_page = parseInt(params.per_page || PER_PAGE_LIMIT, 10);
+  if(params.per_page > PER_PAGE_LIMIT || params.per_page < 1){
+    params.per_page = PER_PAGE_LIMIT;
+  }
+  query.limit(params.per_page).offset(params.per_page*(params.page-1));
 
   pg.connect(conString, function(err, client, done) {
     if(err) {
@@ -77,6 +93,8 @@ app.get('/api/records', function(req, res){
       return;
     }
 
+    console.log(query.toString());
+
     client.query(query.toString(), function(err, result) {
       done();
 
@@ -84,7 +102,14 @@ app.get('/api/records', function(req, res){
         res.status(500).json(err);
         return console.error('error running query', err);
       }else{
-        res.json(result.rows);
+        res.json({
+          results: result.rows,
+          pagination: {
+            count: result.rows.length,
+            page: params.page,
+            per_page: params.per_page
+          }
+        });
       }
     });
   });
