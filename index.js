@@ -21,8 +21,6 @@ pg.connect(conString, function(err, client, done) {
 
     client.query(squel.select().from('irs_eo_records').where('EIN = ?', ein).toString(), function(err, result){
 
-      done();
-
       if(err){
         res.status(500).json(err);
         return;
@@ -39,7 +37,6 @@ pg.connect(conString, function(err, client, done) {
   });
   // QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
   app.get('/api/records', function(req, res){
-    done();
 
     var params = req.query;
 
@@ -73,4 +70,7 @@ pg.connect(conString, function(err, client, done) {
   app.listen(port, function () {
     console.log('Example app listening on port '+port);
   });
+
+  // close database connection when server ends
+  app.on('close', done);
 });
