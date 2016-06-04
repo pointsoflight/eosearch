@@ -6,21 +6,22 @@ var app = express();
 
 var squel = require('squel');
 
-var validColumnNames = "EIN,NAME,ICO,STREET,CITY,STATE,ZIP,GROUP,SUBSECTION,AFFILIATION,CLASSIFICATION,RULING,DEDUCTIBILITY,FOUNDATION,ACTIVITY,ORGANIZATION,STATUS,TAX_PERIOD,ASSET_CD,INCOME_CD,FILING_REQ_CD,PF_FILING_REQ_CD,ACCT_PD,ASSET_AMT,INCOME_AMT,REVENUE_AMT,NTEE_CD,SORT_NAME".toLowerCase().split(',');
+var validColumnNames = "EIN,NAME,ICO,STREET,CITY,STATE,ZIP,EO_GROUP,SUBSECTION,AFFILIATION,CLASSIFICATION,RULING,DEDUCTIBILITY,FOUNDATION,ACTIVITY,ORGANIZATION,STATUS,TAX_PERIOD,ASSET_CD,INCOME_CD,FILING_REQ_CD,PF_FILING_REQ_CD,ACCT_PD,ASSET_AMT,INCOME_AMT,REVENUE_AMT,NTEE_CD,SORT_NAME".toLowerCase().split(',');
 
-pg.connect(conString, function(err, client, done) {
-  if(err) {
-    return console.error('error fetching client from pool', err);
-  }
+// FIND: /api/records/:EIN
+app.get('/api/records/:ein', function(req, res){
 
-  // FIND: /api/records/:EIN
-  app.get('/api/records/:ein', function(req, res){
+  var ein = req.params.ein;
 
-    var ein = req.params.ein;
-
+  pg.connect(conString, function(err, client, done) {
+    if(err) {
+      console.error('error fetching client from pool', err);
+      res.status(500).error(err);
+      return;
+    }
 
     client.query(squel.select().from('irs_eo_records').where('EIN = ?', ein).toString(), function(err, result){
-
+      done(); 
       if(err){
         res.status(500).json(err);
         return;
@@ -33,24 +34,47 @@ pg.connect(conString, function(err, client, done) {
       }
 
     });
-
   });
-  // QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
-  app.get('/api/records', function(req, res){
+});
 
-    var params = req.query;
+// QUERY: /api/records?column1=myvalue&column2=asdf&order=column&limit=5
+app.get('/api/records', function(req, res){
 
-    var queryKeys = Object.keys(params);
-    var query = squel.select().from('irs_eo_records');
+  var params = req.query;
 
-    for(var i=0; i<queryKeys.length;i++){
-      var key = queryKeys[i];
-      var value = params[key];
+  var queryKeys = Object.keys(params);
+  var query = squel.select().from('irs_eo_records');
 
-      // validate column names
-      if(validColumnNames.indexOf(key.toLowerCase()) >= 0){
-        query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');
+  for(var i=0; i<queryKeys.length;i++){
+    var key = queryKeys[i];
+    var value = params[key];
+
+    // validate column names
+    if(validColumnNames.indexOf(key.toLowerCase()) >= 0){
+      query = query.where('lower('+key+') LIKE ?', '%'+value.toLowerCase()+'%');
+    }
+  }
+
+  // ordering
+  if(params.order){
+    console.log(params.order);
+    if(typeof params.order === 'string'){
+      query = query.order(params.order);
+    }else{
+      var keys = Object.keys(params.order);
+      for(var i=0; i<keys.length; i++){
+        var key = keys[i];
+        var asc = keys[key] !== 'false';
+        query = query.order(key, asc);
       }
+    }
+  }
+
+  pg.connect(conString, function(err, client, done) {
+    if(err) {
+      console.error('error fetching client from pool', err);
+      res.status(500).error(err);
+      return;
     }
 
     client.query(query.toString(), function(err, result) {
@@ -64,13 +88,10 @@ pg.connect(conString, function(err, client, done) {
       }
     });
   });
+});
 
 
-  var port = process.env.PORT || 5000;
-  app.listen(port, function () {
-    console.log('Example app listening on port '+port);
-  });
-
-  // close database connection when server ends
-  app.on('close', done);
+var port = process.env.PORT || 5000;
+app.listen(port, function () {
+  console.log('Example app listening on port '+port);
 });
